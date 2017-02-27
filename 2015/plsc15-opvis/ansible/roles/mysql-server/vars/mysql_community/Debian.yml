@@ -1,0 +1,9 @@
+---
+# package install
+mysql_packages:
+  - mysql-server
+
+dependencies:
+  - python-mysqldb
+  - libmysqlclient-dev
+  - git

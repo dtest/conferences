@@ -1,0 +1,54 @@
+
+input {
+{% if logstash['inputs']['file']|length>0 %}
+{% for input in logstash['inputs']['file'] %}
+    file {
+        type => "{{ input.type }}"
+        path => "{{ input.path }}"
+        codec => "{{ input.codec | default('plain') }}"
+    }
+{% endfor %}
+{% endif %}
+
+{% if logstash['inputs']['exec']|length>0 %}
+{% for input in logstash['inputs']['exec'] %}
+    exec {
+        type => "{{ input.type }}"
+        command => "{{ input.command }}"
+        interval => "{{ input.interval }}"
+        codec => "{{ input.codec | default('plain') }}"
+    }
+{% endfor %}
+{% endif %}
+}
+
+filter {
+    mutate {
+        replace => ["host", "{{ inventory_hostname }}"]
+    }
+
+    if [type] == "mysql_error" {
+        multiline {
+            what => previous
+            pattern => '^\s'
+        }
+
+        grok {
+            patterns_dir => '{{ logstash_patterns_dir }}'
+            pattern => '%{MYSQL_ERROR_LOG}'
+        }
+    }
+}
+
+output {
+  rabbitmq {
+    host => "{{ logstash['rabbitmq']['host'] }}"
+    password => "{{ logstash['rabbitmq']['password'] }}"
+    exchange => "{{ rabbitmq_defaults['exchange'] }}"
+    exchange_type => "{{ rabbitmq_defaults['exchange_type'] }}"
+    port => "{{ rabbitmq_defaults['port'] }}"
+    ssl => "{{ rabbitmq_defaults['ssl'] }}"
+    user => "{{ rabbitmq_defaults['user'] }}"
+    verify_ssl => "{{ rabbitmq_defaults['verify_ssl'] }}"
+  }
+}

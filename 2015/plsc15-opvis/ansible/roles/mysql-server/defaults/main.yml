@@ -1,0 +1,52 @@
+---
+install_type: package
+
+mysql_flavor: mysql_community
+
+mysql_version: 5.6
+
+nofile_soft_limits: 64000
+nofile_hard_limits: 64000
+
+mysql_user: mysql
+mysql_group: mysql
+
+mysql_init_file: /etc/init.d/mysql
+
+# Ensure directory structure
+mysql_dirs:
+  - /var/log/mysql
+  - /etc/mysql
+  - "{{ mysql_conf['datadir'] }}"
+  - "{{ mysql_conf['logdir'] }}"
+
+# Used to configure templates/my.cnf.j2
+mysql_conf:
+  basedir: "/usr"
+  datadir: "/var/lib/mysql"
+  tmpdir: "/tmp"
+  logdir: "/var/lib/mysql"
+  socket: "/var/lib/mysql/mysql.sock"
+  pidfile: "/var/lib/mysql/mysqld.pid"
+  expire_logs_days: 1
+  innodb:
+    buffer_pool_size: "128M"
+    log_file_size: "32M"
+  slow_query:
+    enabled: 1
+    long_query_time: 1
+    not_using_indexes: 1
+
+performance_schema_options:
+  consumers:
+    - events_statements_current
+    - events_statements_history
+    - events_statements_history_long
+    - events_stages_current
+    - events_stages_history
+    - events_stages_history_long
+    - events_waits_current
+    - events_waits_history
+    - events_waits_history_long
+  instruments:
+    - "%"
